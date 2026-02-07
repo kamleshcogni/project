@@ -24,6 +24,11 @@ public class CustomerController {
     @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     public Customer get(@PathVariable Long id) { return service.getById(id); }
 
+    // ✅ NEW: resolve customer record for logged-in user
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public Customer me() { return service.getMe(); }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Customer create(@RequestBody Customer c) { return service.create(c); }

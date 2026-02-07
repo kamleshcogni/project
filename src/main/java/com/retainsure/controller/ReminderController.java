@@ -1,7 +1,9 @@
 package com.retainsure.controller;
 
+import com.retainsure.dto.BulkReminderRequest;
 import com.retainsure.model.Reminder;
 import com.retainsure.service.ReminderService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,13 @@ public class ReminderController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Reminder create(@RequestBody Reminder r) { return service.create(r); }
+
+    /** ✅ NEW bulk endpoint */
+    @PostMapping("/bulk")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<Reminder> bulk(@Valid @RequestBody BulkReminderRequest req) {
+        return service.bulkCreate(req);
+    }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

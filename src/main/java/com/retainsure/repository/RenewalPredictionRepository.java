@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface RenewalPredictionRepository extends JpaRepository<RenewalPrediction, Long> {
     List<RenewalPrediction> findByCustomerId(Long customerId);
     List<RenewalPrediction> findByPolicyId(Long policyId);
+    List<RenewalPrediction> findByRiskScoreGreaterThanEqual(int riskScore);
 }

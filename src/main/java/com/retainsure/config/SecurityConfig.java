@@ -1,5 +1,7 @@
 package com.retainsure.config;
 
+import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import com.retainsure.service.AuthService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,12 +29,16 @@ public class SecurityConfig {
         this.authService = authService;
     }
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http
+                .cors(Customizer.withDefaults())  // 👈 ADD THIS
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // 👈 ADD THIS
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
