@@ -28,8 +28,8 @@ public class CampaignService {
 
     public Campaign update(Long id, Campaign c) {
         Campaign existing = getById(id);
-        existing.setName(c.getName());
-        existing.setTargetSegment(c.getTargetSegment());
+        existing.setCampaignName(c.getCampaignName());
+        existing.setTarget(c.getTarget());
         existing.setStartDate(c.getStartDate());
         existing.setEndDate(c.getEndDate());
         existing.setStatus(c.getStatus());

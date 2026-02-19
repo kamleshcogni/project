@@ -1,16 +1,17 @@
 package com.retainsure.service;
-
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import com.retainsure.model.Campaign;
 import com.retainsure.dto.customer.DashboardCustomerResponse;
 import com.retainsure.model.Customer;
 import com.retainsure.model.Policy;
 import com.retainsure.model.Reminder;
 import com.retainsure.model.User;
-import com.retainsure.repository.CustomerRepository;
-import com.retainsure.repository.PolicyRepository;
-import com.retainsure.repository.ReminderRepository;
-import com.retainsure.repository.UserRepository;
+import com.retainsure.repository.*;
+
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,15 +24,33 @@ public class CustomerDashboardService {
     private final CustomerRepository customerRepository;
     private final PolicyRepository policyRepository;
     private final ReminderRepository reminderRepository;
+    private final CampaignRepository campaignRepository;
 
     public CustomerDashboardService(UserRepository userRepository,
                                     CustomerRepository customerRepository,
                                     PolicyRepository policyRepository,
-                                    ReminderRepository reminderRepository) {
+                                    ReminderRepository reminderRepository, CampaignRepository campaignRepository) {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.policyRepository = policyRepository;
         this.reminderRepository = reminderRepository;
+        this.campaignRepository = campaignRepository;
+    }
+
+    private boolean isWithinCampaignWindow(Campaign c) {
+        DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE; // yyyy-MM-dd
+        LocalDate today = LocalDate.now();
+
+        LocalDate start = c.getStartDate() != null ? LocalDate.parse(c.getStartDate(), fmt) : null;
+        LocalDate end = c.getEndDate() != null ? LocalDate.parse(c.getEndDate(), fmt) : null;
+
+        if (start != null && today.isBefore(start)) return false;
+        if (end != null && today.isAfter(end)) return false;
+        return true;
+    }
+
+    private String safeLower(String v) {
+        return v == null ? null : v.trim().toLowerCase();
     }
 
     public DashboardCustomerResponse getMyDashboard() {
@@ -44,17 +63,18 @@ public class CustomerDashboardService {
         List<DashboardCustomerResponse.PolicyCard> uiPolicies = policies.stream()
                 .map(p -> new DashboardCustomerResponse.PolicyCard(
                         policyName(p.getPolicyType()),
-                        "POL-" + p.getPolicyId(),
+                        p.getPolicyNumber() != null ? p.getPolicyNumber() : "POL-" + p.getPolicyId(),
                         String.valueOf(p.getStatus()),
                         isActive(p) ? p.getEndDate() : null,
                         isExpired(p) ? p.getEndDate() : null,
-                        0.0,
-                        "-",
-                        0.0,
-                        "—"
+                        p.getPremium() != null ? p.getPremium().doubleValue() : 0.0,
+                        p.getCoverage() != null ? p.getCoverage() : "-",
+                        p.getInsuredValue() != null
+                                ? p.getInsuredValue().doubleValue()
+                                : (p.getAmount() != null ? p.getAmount().doubleValue() : 0.0),
+                        p.getNotes() != null ? p.getNotes() : "—"
                 ))
                 .toList();
-
         // Next renewal: earliest ACTIVE endDate
         Optional<Policy> next = policies.stream()
                 .filter(this::isActive)
@@ -70,16 +90,22 @@ public class CustomerDashboardService {
                 .orElseGet(() -> new DashboardCustomerResponse.NextRenewal("-", "-", "", "N/A"));
 
         // Offers: derive from reminders (as your earlier Angular mapping did)
-        List<DashboardCustomerResponse.OfferCard> offers = reminders.stream()
+        List<DashboardCustomerResponse.OfferCard> offers = campaignRepository.findAll().stream()
+                .filter(c -> c.getStatus() != null && c.getStatus().name().equalsIgnoreCase("ACTIVE"))
+                .filter(c -> Objects.equals(
+                        safeLower(c.getTarget()),
+                        safeLower(customer.getRiskLevel())
+                ))
+                .filter(this::isWithinCampaignWindow)
+                .sorted(Comparator.comparing(Campaign::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(3)
-                .map(r -> new DashboardCustomerResponse.OfferCard(
-                        "Retention Offer",
-                        "Limited",
-                        r.getMessage(),
-                        "Sent on " + r.getSentDate()
+                .map(c -> new DashboardCustomerResponse.OfferCard(
+                        c.getCampaignName(),
+                        c.getDiscountPercent() != null ? c.getDiscountPercent() + "% OFF" : "Offer",
+                        "Target: " + c.getTarget(),
+                        "Valid: " + c.getStartDate() + " to " + c.getEndDate()
                 ))
                 .toList();
-
         return new DashboardCustomerResponse(nextRenewal, uiPolicies, offers);
     }
 

@@ -36,7 +36,6 @@ public class PredictionService {
         existing.setPolicyId(p.getPolicyId());
         existing.setRenewalProbability(p.getRenewalProbability());
         existing.setRiskScore(p.getRiskScore());
-        existing.setPredictionDate(p.getPredictionDate());
         RenewalPrediction saved = repo.save(existing);
         auditService.logAction("UPDATE", "RenewalPrediction", String.valueOf(saved.getPredictionId()), "Updated prediction");
         return saved;

@@ -30,10 +30,9 @@ public class CampaignController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Campaign update(@PathVariable Long id, @RequestBody Campaign c) {
+    public Campaign update(@PathVariable("id") Long id, @RequestBody Campaign c) {
         return service.update(id, c);
     }
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) { service.delete(id); }
