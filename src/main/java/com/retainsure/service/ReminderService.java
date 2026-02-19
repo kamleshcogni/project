@@ -2,7 +2,8 @@ package com.retainsure.service;
 
 import com.retainsure.dto.BulkReminderRequest;
 import com.retainsure.model.Reminder;
-import com.retainsure.model.Reminder.ReminderStatus;
+
+import com.retainsure.model.ReminderStatus;
 import com.retainsure.model.RenewalPrediction;
 import com.retainsure.repository.ReminderRepository;
 import com.retainsure.repository.RenewalPredictionRepository;

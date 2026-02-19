@@ -22,7 +22,7 @@ public class CampaignController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Campaign get(@PathVariable Long id) { return service.getById(id); }
+    public Campaign get(@PathVariable("id") Long id) { return service.getById(id); }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -30,11 +30,11 @@ public class CampaignController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Campaign update(@PathVariable Long id, @RequestBody Campaign c) {
+    public Campaign update(@PathVariable("id") Long id, @RequestBody Campaign c) {
         return service.update(id, c);
     }
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable Long id) { service.delete(id); }
+
+    public void delete(@PathVariable("id") Long id) { service.delete(id); }
 }
