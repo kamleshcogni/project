@@ -22,7 +22,7 @@ public class CampaignController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Campaign get(@PathVariable Long id) { return service.getById(id); }
+    public Campaign get(@PathVariable("id") Long id) { return service.getById(id); }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -35,5 +35,6 @@ public class CampaignController {
     }
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable Long id) { service.delete(id); }
+
+    public void delete(@PathVariable("id") Long id) { service.delete(id); }
 }
